@@ -1,0 +1,496 @@
+<!doctype html>
+<html lang="af">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Woordvorming en -verandering • Graad 8 FAL</title>
+  <style>
+    :root{
+      --bg:#0f172a; --card:#111827; --ink:#f8fafc; --muted:#cbd5e1;
+      --accent:#22d3ee; --accent2:#a78bfa; --good:#22c55e; --bad:#ef4444;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial;
+      background:linear-gradient(160deg,#0b1025,#121a3a 60%,#0b1025);
+      color:var(--ink);
+    }
+    header{padding:18px 20px;border-bottom:1px solid #1f2937;display:flex;gap:14px;align-items:center}
+    header h1{margin:0;font-size:20px;font-weight:700;letter-spacing:.2px}
+    header .tag{font-size:12px;color:var(--muted);padding:2px 8px;border:1px solid #334155;border-radius:999px}
+    #app{max-width:1100px;margin:18px auto 64px;padding:0 16px}
+    .nav{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0 20px}
+    .nav button{
+      background:#111827;border:1px solid #273143;color:var(--ink);padding:10px 14px;
+      border-radius:12px;cursor:pointer;font-weight:600
+    }
+    .nav button.active{border-color:var(--accent);box-shadow:0 0 0 2px #0ea5b8 inset}
+    .card{
+      background:linear-gradient(180deg,#0b1227,#0b0f1f); border:1px solid #1f2937; border-radius:16px;
+      padding:18px; box-shadow:0 10px 30px rgba(0,0,0,.35)
+    }
+    h2{margin:0 0 12px;font-size:22px}
+    p{color:var(--muted);line-height:1.6}
+    .grid{display:grid;gap:14px}
+    @media(min-width:860px){.grid.cols-2{grid-template-columns:1fr 1fr}}
+    .pill{display:inline-block;padding:6px 10px;border:1px dashed #334155;border-radius:10px;color:#93c5fd;font-size:13px;margin-right:6px}
+    .hl{color:#67e8f9}
+    .muted{color:var(--muted);font-size:14px}
+    .hint{color:#a1a1aa;font-style:italic;font-size:13px;margin:.2rem 0 .6rem}
+    .btn{background:#0b1227;border:1px solid #334155;color:var(--ink);padding:8px 12px;border-radius:10px;cursor:pointer}
+    .btn.primary{border-color:var(--accent);box-shadow:0 0 0 2px #0ea5b8 inset}
+    .btn.success{border-color:var(--good)}
+    .btn.danger{border-color:var(--bad)}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .kpi{display:flex;gap:8px;align-items:center;padding:8px 10px;border:1px solid #273143;border-radius:12px}
+    .good{color:var(--good)} .bad{color:var(--bad)}
+    .sep{height:1px;background:#1f2937;margin:14px 0}
+    /* Drag and drop */
+    .dragbank,.buckets{display:flex;gap:10px;flex-wrap:wrap}
+    .chip{
+      padding:8px 10px;border:1px solid #334155;border-radius:12px;background:#0f172a;cursor:grab;
+    }
+    .bucket{
+      min-height:64px;flex:1;padding:10px;border:2px dashed #334155;border-radius:12px;background:#0b0f1f
+    }
+    .bucket h4{margin:0 0 6px;font-size:14px;color:#a5b4fc}
+    .bucket.correct{border-color:var(--good)} .bucket.wrong{border-color:var(--bad)}
+    .small{font-size:13px}
+    .mcq .option{padding:10px;border:1px solid #334155;border-radius:12px;cursor:pointer;margin:8px 0}
+    .mcq .option.correct{border-color:var(--good)} .mcq .option.wrong{border-color:var(--bad)}
+    .code{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;background:#0a0f20;border:1px solid #1f2937;border-radius:10px;padding:10px;color:#d1d5db}
+    footer{max-width:1100px;margin:28px auto 40px;padding:0 16px;color:#94a3b8;font-size:12px}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Woordvorming en ‑verandering</h1>
+    <span class="tag">Graad 8 • Afrikaans FAL • CAPS</span>
+    <div style="margin-left:auto" class="row">
+      <div class="kpi" title="Punte vandag"><span>⭐</span><span id="score">0</span></div>
+      <div class="kpi" title="Voltooide aktiwiteite"><span>✅</span><span id="done">0</span>/4</div>
+      <button class="btn" id="resetBtn">Herstel</button>
+    </div>
+  </header>
+
+  <main id="app">
+    <div class="nav">
+      <button data-tab="les" class="active">Les</button>
+      <button data-tab="sleep">Sleep & Los</button>
+      <button data-tab="mcq">Meerkeuse</button>
+      <button data-tab="kort">Kort antwoorde</button>
+      <button data-tab="toets">Eindtoets</button>
+      <button data-tab="result">Resultate</button>
+    </div>
+
+    <!-- LES -->
+    <section id="tab-les" class="card">
+      <h2>Wat is <span class="hl">woordvorming</span>?</h2>
+      <p>Woordvorming is wanneer ons nuwe woorde skep of bestaande woorde verander. Ons doen dit hoofsaaklik op drie maniere:</p>
+      <div class="grid cols-2">
+        <div>
+          <p class="pill">Samestelling</p>
+          <p><b>2+ woorde</b> word één woord: <b>hond + hok → hondhok</b> • <b>skool + tas → skooltas</b></p>
+          <p class="hint"><i>English: A compound joins whole words without changing parts.</i></p>
+          <p class="pill">Afleiding</p>
+          <p>Ons voeg ’n <b>voor-</b> of <b>agtervoegsel</b> by: <b>gelukkig → on-gelukkig</b> • <b>speel → speler</b></p>
+          <p class="hint"><i>English: Derivation uses prefixes/suffixes to change meaning or word class.</i></p>
+        </div>
+        <div>
+          <p class="pill">Samestellende afleiding</p>
+          <p>Kombinasie van albei: <b>skool + meisie + tjie → skoolmeisietjie</b></p>
+          <p class="pill">Ander veranderinge</p>
+          <p><b>Meervoude:</b> hond → honde • <b>Verkleinwoorde:</b> boek → boekie • <b>Intensiewe vorm:</b> pikswart</p>
+          <p class="hint"><i>English: Plurals, diminutives, and intensifiers are also “changes” to base words.</i></p>
+        </div>
+      </div>
+
+      <div class="sep"></div>
+      <h3>Vinnige reëls</h3>
+      <ul class="small">
+        <li><b>Samestelling:</b> hoofklem op eerste deel (bv. <u>huis</u>deur).</li>
+        <li><b>Afleiding:</b> voorvoegsels soos <b>on-, her-, be-, ver-</b>; agtervoegsels soos <b>-er, -lik, -ing</b>.</li>
+        <li><b>Verkleinwoorde:</b> <b>-tjie/-etjie/-ie</b> volgens eindklank (bv. boek → <b>boekie</b>, vrou → <b>vroutjie</b>).</li>
+        <li><b>Meervoude:</b> -e, -s, -ë, konsonantverdubbeling waar nodig (bv. <b>blad → blaaie</b> as uitsondering).</li>
+      </ul>
+      <p class="hint"><i>English: Learn patterns, then test yourself in the activities.</i></p>
+    </section>
+
+    <!-- DRAG & DROP -->
+    <section id="tab-sleep" class="card" hidden>
+      <h2>Sleep & los: Klassifiseer die woorde</h2>
+      <p class="muted">Plaas elke woord in die korrekte kategorie. <span class="hint"><i>English: Drag chips into the right bucket.</i></span></p>
+      <div class="dragbank" id="dragBank"></div>
+      <div class="grid cols-2 buckets" id="buckets"></div>
+      <div class="row" style="margin-top:12px">
+        <button class="btn primary" id="checkDrag">Merk antwoorde</button>
+        <button class="btn" id="resetDrag">Skud weer</button>
+        <span id="dragMsg" class="muted"></span>
+      </div>
+    </section>
+
+    <!-- MCQ -->
+    <section id="tab-mcq" class="card" hidden>
+      <h2>Meerkeuse</h2>
+      <p class="muted">Kies die beste antwoord. <span class="hint"><i>English: One correct option each.</i></span></p>
+      <div id="mcqWrap"></div>
+      <div class="row" style="margin-top:12px">
+        <button class="btn primary" id="checkMcq">Merk</button>
+        <button class="btn" id="resetMcq">Herbegin</button>
+        <span id="mcqMsg" class="muted"></span>
+      </div>
+    </section>
+
+    <!-- SHORT ANSWERS -->
+    <section id="tab-kort" class="card" hidden>
+      <h2>Kort antwoorde</h2>
+      <p class="muted">Tik die regte vorm/term. <span class="hint"><i>English: Type the correct word; not case-sensitive.</i></span></p>
+      <div id="shortWrap"></div>
+      <div class="row" style="margin-top:12px">
+        <button class="btn primary" id="checkShort">Merk</button>
+        <button class="btn" id="resetShort">Herbegin</button>
+        <span id="shortMsg" class="muted"></span>
+      </div>
+    </section>
+
+    <!-- FINAL QUIZ -->
+    <section id="tab-toets" class="card" hidden>
+      <h2>Eindtoets</h2>
+      <p class="muted">5 vrae gemeng: klassifikasie, meerkeuse en kort antwoorde. <span class="hint"><i>English: Mixed question types.</i></span></p>
+      <div id="finalWrap"></div>
+      <div class="row" style="margin-top:12px">
+        <button class="btn primary" id="checkFinal">Merk eindtoets</button>
+        <button class="btn" id="resetFinal">Herbegin</button>
+        <span id="finalMsg" class="muted"></span>
+      </div>
+    </section>
+
+    <!-- RESULTS -->
+    <section id="tab-result" class="card" hidden>
+      <h2>Resultate & vordering</h2>
+      <div id="summary"></div>
+      <div class="sep"></div>
+      <p class="small">Wenk: Neem ’n skermgreep vir jou portefeulje of vra jou onderwyser om die punte in Moodle vas te lê.</p>
+    </section>
+  </main>
+
+  <footer>
+    © WordWise • Les deur AI helper. *This app is self-contained; host as a single HTML file.*
+  </footer>
+
+  <script>
+    // ---------- State ----------
+    const state = {
+      score: Number(localStorage.getItem("wv_score")||0),
+      done: JSON.parse(localStorage.getItem("wv_done")||"{}"), // tabs completed
+    };
+    const elScore = document.getElementById('score');
+    const elDone = document.getElementById('done');
+
+    function save(){
+      localStorage.setItem("wv_score", state.score);
+      localStorage.setItem("wv_done", JSON.stringify(state.done));
+      elScore.textContent = state.score;
+      elDone.textContent = Object.keys(state.done).length;
+    }
+    save();
+
+    // ---------- Nav ----------
+    const tabs = ["les","sleep","mcq","kort","toets","result"];
+    document.querySelectorAll(".nav button").forEach(btn=>{
+      btn.addEventListener("click", ()=>{
+        document.querySelectorAll(".nav button").forEach(b=>b.classList.remove("active"));
+        btn.classList.add("active");
+        const tab = btn.dataset.tab;
+        tabs.forEach(t=>{
+          document.getElementById("tab-"+t).hidden = (t!==tab);
+        });
+        if(tab==="result") renderSummary();
+      });
+    });
+
+    document.getElementById("resetBtn").addEventListener("click", ()=>{
+      if(confirm("Herstel punte en vordering?")){
+        localStorage.removeItem("wv_score");
+        localStorage.removeItem("wv_done");
+        state.score=0; state.done={}; save();
+        location.reload();
+      }
+    });
+
+    // ---------- Drag & Drop ----------
+    const DRAG_ITEMS = [
+      {w:"hondhok", cat:"Samestelling"},
+      {w:"skooltas", cat:"Samestelling"},
+      {w:"ongelukkig", cat:"Afleiding"},
+      {w:"herlees", cat:"Afleiding"},
+      {w:"skoolmeisietjie", cat:"Samestellende afleiding"},
+      {w:"motorbestuurders", cat:"Samestellende afleiding"},
+      {w:"boekies", cat:"Verkleinwoord"},
+      {w:"honde", cat:"Meervoud"},
+      {w:"pikswart", cat:"Intensiewe vorm"},
+      {w:"loeiende-koud", cat:"Intensiewe vorm"} // playful variant
+    ];
+    const BUCKETS = ["Samestelling","Afleiding","Samestellende afleiding","Meervoud","Verkleinwoord","Intensiewe vorm"];
+
+    const dragBank = document.getElementById("dragBank");
+    const bucketsWrap = document.getElementById("buckets");
+    const dragMsg = document.getElementById("dragMsg");
+
+    function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]] } return a; }
+
+    function renderDrag(){
+      dragBank.innerHTML="";
+      bucketsWrap.innerHTML="";
+      shuffle([...DRAG_ITEMS]).forEach((it,i)=>{
+        const chip = document.createElement("div");
+        chip.className="chip";
+        chip.textContent=it.w;
+        chip.draggable=true; chip.id="chip-"+i;
+        chip.dataset.cat=it.cat;
+        chip.addEventListener("dragstart",e=>e.dataTransfer.setData("text/plain", chip.id));
+        dragBank.appendChild(chip);
+      });
+      BUCKETS.forEach(cat=>{
+        const b = document.createElement("div");
+        b.className="bucket";
+        b.dataset.cat=cat;
+        b.addEventListener("dragover", e=>e.preventDefault());
+        b.addEventListener("drop", e=>{
+          const id = e.dataTransfer.getData("text/plain");
+          const node = document.getElementById(id);
+          b.appendChild(node);
+        });
+        b.innerHTML = `<h4>${cat}</h4>`;
+        bucketsWrap.appendChild(b);
+      });
+      dragMsg.textContent="";
+      document.querySelectorAll(".bucket").forEach(b=>b.classList.remove("correct","wrong"));
+    }
+    renderDrag();
+
+    document.getElementById("resetDrag").addEventListener("click", renderDrag);
+
+    document.getElementById("checkDrag").addEventListener("click", ()=>{
+      let correct=0, total=DRAG_ITEMS.length;
+      document.querySelectorAll(".bucket").forEach(b=>{
+        const cat=b.dataset.cat;
+        let allGood=true;
+        [...b.querySelectorAll(".chip")].forEach(ch=>{
+          if(ch.dataset.cat===cat){ correct++; } else { allGood=false; }
+        });
+        b.classList.toggle("correct", allGood && b.querySelector(".chip"));
+        b.classList.toggle("wrong", !allGood && b.querySelector(".chip"));
+      });
+      dragMsg.textContent = `Regte: ${correct}/${total}`;
+      if(correct===total){
+        if(!state.done.sleep){ state.done.sleep=true; state.score+=10; save(); }
+      }
+    });
+
+    // ---------- MCQ ----------
+    const MCQ = [
+      {
+        q:"Watter woord is ’n afleiding?",
+        a:"beskikbaar → onbeskikbaar",
+        d:["hond + hok → hondhok","skool + bank → skoolbank","kat + bak → katbak"]
+      },
+      {
+        q:"Kies die samestellende afleiding:",
+        a:"motorbestuurders",
+        d:["motor + band","bestuur + der","motorhuis"]
+      },
+      {
+        q:"’n Voorbeeld van ’n intensiewe vorm is:",
+        a:"doodstil",
+        d:["stilletjie","stille","stillers"]
+      },
+      {
+        q:"Watter reël pas by verkleinwoorde?",
+        a:"boek → boekie",
+        d:["boek → boeke","boek → boeker","boek → boekes"]
+      },
+      {
+        q:"Watter antwoord is ’n samestelling?",
+        a:"son + blom → sonblom",
+        d:["her + lees → herlees","lees + er → leser","on + gelukkig → ongelukkig"]
+      }
+    ];
+    const mcqWrap = document.getElementById("mcqWrap");
+    const mcqMsg = document.getElementById("mcqMsg");
+
+    function renderMcq(){
+      mcqWrap.innerHTML="";
+      shuffle([...MCQ]).forEach((m,i)=>{
+        const box=document.createElement("div");
+        box.className="mcq";
+        box.innerHTML=`<p><b>${i+1}.</b> ${m.q}</p>`;
+        const opts=shuffle([m.a,...m.d]);
+        opts.forEach(op=>{
+          const div=document.createElement("div");
+          div.className="option";
+          div.textContent=op;
+          div.dataset.correct=(op===m.a);
+          div.addEventListener("click",()=>div.classList.toggle("selected"));
+          box.appendChild(div);
+        });
+        mcqWrap.appendChild(box);
+      });
+      mcqMsg.textContent="";
+    }
+    renderMcq();
+
+    document.getElementById("resetMcq").addEventListener("click", renderMcq);
+    document.getElementById("checkMcq").addEventListener("click", ()=>{
+      let correct=0,total=MCQ.length;
+      document.querySelectorAll(".mcq").forEach(block=>{
+        const options=[...block.querySelectorAll(".option")];
+        options.forEach(o=>o.classList.remove("correct","wrong"));
+        const sel = options.find(o=>o.classList.contains("selected"));
+        if(!sel){ return; }
+        if(sel.dataset.correct==="true"){ correct++; sel.classList.add("correct"); }
+        else { sel.classList.add("wrong"); options.find(o=>o.dataset.correct==="true").classList.add("correct"); }
+      });
+      mcqMsg.textContent=`Regte: ${correct}/${total}`;
+      if(correct===total){
+        if(!state.done.mcq){ state.done.mcq=true; state.score+=10; save(); }
+      }
+    });
+
+    // ---------- Short Answers ----------
+    const SHORT = [
+      {q:"Skryf die meervoud van <b>hond</b>:", answers:["honde"]},
+      {q:"Skryf die verkleinwoord van <b>boek</b>:", answers:["boekie"]},
+      {q:"Watter TIPE is <b>skooltas</b>? (tik: samestelling/afleiding/samestellende afleiding)", answers:["samestelling"]},
+      {q:"Maak ’n afleiding met <b>geluk</b> (met ’n voorvoegsel):", answers:["ongeluk","ongelukke","ongelukkig"]},
+      {q:"Gee ’n intensiewe vorm vir <b>skoon</b>:", answers:["silwerskoon"]},
+    ];
+    const shortWrap=document.getElementById("shortWrap");
+    const shortMsg=document.getElementById("shortMsg");
+
+    function renderShort(){
+      shortWrap.innerHTML="";
+      SHORT.forEach((s,i)=>{
+        const row=document.createElement("div");
+        row.className="row";
+        row.style.margin="10px 0";
+        row.innerHTML = `<div style="flex:1"><p>${i+1}. ${s.q}</p></div>
+          <input data-i="${i}" type="text" placeholder="Jou antwoord" style="flex:1;padding:10px;border-radius:10px;border:1px solid #334155;background:#0b0f1f;color:#fff" />`;
+        shortWrap.appendChild(row);
+      });
+      shortMsg.textContent="";
+    }
+    renderShort();
+
+    function norm(s){ return s.trim().toLowerCase(); }
+
+    document.getElementById("resetShort").addEventListener("click", renderShort);
+    document.getElementById("checkShort").addEventListener("click", ()=>{
+      const inputs=[...shortWrap.querySelectorAll("input")];
+      let correct=0;
+      inputs.forEach(inp=>{
+        const i=Number(inp.dataset.i);
+        const ok = SHORT[i].answers.map(norm).includes(norm(inp.value));
+        inp.style.borderColor = ok ? "#22c55e" : "#ef4444";
+        if(ok) correct++;
+      });
+      shortMsg.textContent=`Regte: ${correct}/${SHORT.length}`;
+      if(correct===SHORT.length){
+        if(!state.done.kort){ state.done.kort=true; state.score+=10; save(); }
+      }
+    });
+
+    // ---------- Final Quiz (5 mixed) ----------
+    const FINAL = [
+      {type:"mcq", q:"Kies die beste voorbeeld van ’n samestellende afleiding:", a:"plaaswerker-tjie (plaaswerktjie)", d:["plaas + werker","werk + er","plaaswerk"]},
+      {type:"short", q:"Gee die meervoud: <b>vlag</b>", answers:["vlae"]},
+      {type:"mcq", q:"Watter is ’n afleiding?", a:"verkoop", d:["koekblik","sonlig","deurklok"]},
+      {type:"short", q:"TIPE vir <b>houtkapper</b> (samestelling/afleiding/samestellende afleiding):", answers:["samestellende afleiding","samestellende-afleiding"]},
+      {type:"short", q:"Intensiewe vorm vir <b>donker</b>:", answers:["pikdonker","stokdonker"]},
+    ];
+    const finalWrap=document.getElementById("finalWrap");
+    const finalMsg=document.getElementById("finalMsg");
+
+    function renderFinal(){
+      finalWrap.innerHTML="";
+      shuffle([...FINAL]).forEach((f,idx)=>{
+        if(f.type==="mcq"){
+          const box=document.createElement("div");
+          box.className="mcq";
+          box.innerHTML=`<p><b>${idx+1}.</b> ${f.q}</p>`;
+          const opts=shuffle([f.a,...f.d]);
+          opts.forEach(op=>{
+            const div=document.createElement("div");
+            div.className="option";
+            div.textContent=op;
+            div.dataset.correct=(op===f.a);
+            div.addEventListener("click",()=>div.classList.toggle("selected"));
+            box.appendChild(div);
+          });
+          finalWrap.appendChild(box);
+        } else {
+          const row=document.createElement("div");
+          row.className="row";
+          row.style.margin="10px 0";
+          row.innerHTML = `<div style="flex:1"><p><b>${idx+1}.</b> ${f.q}</p></div>
+            <input data-i="${idx}" type="text" placeholder="Antwoord" style="flex:1;padding:10px;border-radius:10px;border:1px solid #334155;background:#0b0f1f;color:#fff" />`;
+          row.dataset.answers = JSON.stringify(f.answers);
+          finalWrap.appendChild(row);
+        }
+      });
+      finalMsg.textContent="";
+    }
+    renderFinal();
+
+    document.getElementById("resetFinal").addEventListener("click", renderFinal);
+    document.getElementById("checkFinal").addEventListener("click", ()=>{
+      let correct=0,total=FINAL.length;
+      // MCQ parts
+      finalWrap.querySelectorAll(".mcq").forEach(block=>{
+        const options=[...block.querySelectorAll(".option")];
+        options.forEach(o=>o.classList.remove("correct","wrong"));
+        const sel = options.find(o=>o.classList.contains("selected"));
+        if(!sel){ return; }
+        if(sel.dataset.correct==="true"){ correct++; sel.classList.add("correct"); }
+        else { sel.classList.add("wrong"); options.find(o=>o.dataset.correct==="true").classList.add("correct"); }
+      });
+      // Short parts
+      finalWrap.querySelectorAll(".row[data-answers]").forEach(row=>{
+        const answers=JSON.parse(row.dataset.answers); const inp=row.querySelector("input");
+        const ok = answers.map(a=>a.toLowerCase().trim()).includes(inp.value.toLowerCase().trim());
+        if(ok){ correct++; inp.style.borderColor="#22c55e"; } else { inp.style.borderColor="#ef4444"; }
+      });
+      finalMsg.textContent=`Regte: ${correct}/${total}`;
+      if(correct===total){
+        if(!state.done.toets){ state.done.toets=true; state.score+=20; save(); }
+      }
+    });
+
+    // ---------- Results ----------
+    function renderSummary(){
+      const s = `
+        <div class="grid cols-2">
+          <div class="card" style="background:#0a0f20">
+            <h3>Jou punte</h3>
+            <p class="kpi"><span>⭐</span> <b>${state.score}</b> totale punte</p>
+            <p class="muted">+10 vir elke aktiwiteit (Sleep, MCQ, Kort) en +20 vir die Eindtoets.</p>
+          </div>
+          <div class="card" style="background:#0a0f20">
+            <h3>Voltooiing</h3>
+            <ul class="small">
+              <li>Sleep & Los: ${state.done.sleep ? "✅" : "⬜"}</li>
+              <li>Meerkeuse: ${state.done.mcq ? "✅" : "⬜"}</li>
+              <li>Kort antwoorde: ${state.done.kort ? "✅" : "⬜"}</li>
+              <li>Eindtoets: ${state.done.toets ? "✅" : "⬜"}</li>
+            </ul>
+          </div>
+        </div>
+        <div class="sep"></div>
+        <h3>Selfrefleksie</h3>
+        <p class="small">Waarmee sukkel jy nog? <b>Afleiding</b> of <b>samestellende afleiding</b>? Gaan terug na “Les” en maak aantekeninge. <span class="hint"><i>English: Review slides, then retry activities.</i></span></p>
+      `;
+      document.getElementById("summary").innerHTML = s;
+    }
+  </script>
+</body>
+</html>
